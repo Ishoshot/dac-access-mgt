@@ -86,6 +86,8 @@ class AccessTokenController extends Controller
     public function revokeAccessToken(Request $request)
     {
         try {
+            $uuid = Str::uuid()->toString();
+
             $validator = Validator::make($request->all(), [
                 'token' => ['required', 'string', 'exists:access_tokens,token'],
             ]);
@@ -103,7 +105,7 @@ class AccessTokenController extends Controller
 
             $accessToken->save();
 
-            return response()->json(['success' => true, 'message' => 'Access token revoked successfully', 'data' => []], 200);
+            return response()->json(['success' => true, 'message' => 'Access token revoked successfully', 'data' => $accessToken], 200);
         } catch (Exception $e) {
             Log::error('REVOKE TOKEN: ERROR', ["uid" => $uuid, "error" => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Access token could not be revoked', 'data' => $e->getMessage()], 500);
@@ -117,6 +119,8 @@ class AccessTokenController extends Controller
     public function extendAccessToken(Request $request)
     {
         try {
+            $uuid = Str::uuid()->toString();
+
             $validator = Validator::make($request->all(), [
                 'token' => ['required', 'string', 'exists:access_tokens,token'],
             ]);
@@ -136,7 +140,7 @@ class AccessTokenController extends Controller
 
             $accessToken->save();
 
-            return response()->json(['success' => true, 'message' => 'Access token revoked successfully', 'data' => []], 200);
+            return response()->json(['success' => true, 'message' => 'Access token revoked successfully', 'data' => $accessToken], 200);
         } catch (Exception $e) {
             Log::error('REVOKE TOKEN: ERROR', ["uid" => $uuid, "error" => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Access token could not be revoked', 'data' => $e->getMessage()], 500);
