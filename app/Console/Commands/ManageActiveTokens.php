@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AccessToken;
 use Illuminate\Console\Command;
 
 class ManageActiveTokens extends Command
