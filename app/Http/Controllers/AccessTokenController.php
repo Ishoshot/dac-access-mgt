@@ -74,7 +74,7 @@ class AccessTokenController extends Controller
 
             return response()->json(['success' => true, 'message' => 'Access token created successfully', 'data' => $accessToken], 201);
         } catch (Exception $e) {
-            Log::error('CREATE TOKENS: ERROR', ["uid" => $uuid, "error" => $e->getMessage()]);
+            Log::error('CREATE TOKEN: ERROR', ["uid" => $uuid, "error" => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Access token could not be created', 'data' => $e->getMessage()], 500);
         }
     }
@@ -126,7 +126,7 @@ class AccessTokenController extends Controller
             ]);
 
             if ($validator->fails()) {
-                Log::error('EXTENT TOKEN: VALIDATION', ["uid" => $uuid, "response" => ['errors' => $validator->errors()]]);
+                Log::error('EXTEND TOKEN: VALIDATION', ["uid" => $uuid, "response" => ['errors' => $validator->errors()]]);
                 return response()->json(['success' => false, 'message' => 'Validation failed', 'data' => ['errors' => $validator->errors()]], 422);
             }
 
@@ -140,10 +140,53 @@ class AccessTokenController extends Controller
 
             $accessToken->save();
 
-            return response()->json(['success' => true, 'message' => 'Access token revoked successfully', 'data' => $accessToken], 200);
+            return response()->json(['success' => true, 'message' => 'Access token extended successfully', 'data' => $accessToken], 200);
         } catch (Exception $e) {
-            Log::error('REVOKE TOKEN: ERROR', ["uid" => $uuid, "error" => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Access token could not be revoked', 'data' => $e->getMessage()], 500);
+            Log::error('EXTEND TOKEN: ERROR', ["uid" => $uuid, "error" => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Access token could not be extended', 'data' => $e->getMessage()], 500);
         }
+    }
+
+
+    /**
+     * Validate an access token
+     */
+    public function validateAccessToken(Request $request)
+    {
+        $uuid = Str::uuid()->toString();
+
+        $validator = Validator::make($request->all(), [
+            'token' => ['required', 'string', 'exists:access_tokens,token'],
+        ]);
+
+        if ($validator->fails()) {
+            Log::error('VALIDATE TOKEN: VALIDATION', ["uid" => $uuid, "response" => ['errors' => $validator->errors()]]);
+            return response()->json(['success' => false, 'message' => 'Validation failed', 'data' => ['errors' => $validator->errors()]], 422);
+        }
+
+        $accessToken = AccessToken::where('token', $request->token)->first();
+
+        if (!$accessToken) {
+            Log::error('VALIDATE TOKEN: ERROR', ["uid" => $uuid, "error" => 'Access token does not exist']);
+            return response()->json(['success' => false, 'message' => 'Access token does not exist', 'data' => []], 404);
+        }
+
+        if (!$accessToken->is_active) {
+            Log::error('VALIDATE TOKEN: ERROR', ["uid" => $uuid, "error" => 'Access token is not active']);
+            return response()->json(['success' => false, 'message' => 'Access token is not active', 'data' => $accessToken], 401);
+        }
+
+        if ($accessToken->revoked_at != null) {
+            Log::error('VALIDATE TOKEN: ERROR', ["uid" => $uuid, "error" => 'Access token is revoked']);
+            return response()->json(['success' => false, 'message' => 'Access token is revoked', 'data' => $accessToken], 401);
+        }
+
+        if (now() > $accessToken->expires_at) {
+            Log::error('VALIDATE TOKEN: ERROR', ["uid" => $uuid, "error" => 'Access token is expired']);
+            return response()->json(['success' => false, 'message' => 'Access token is expired', 'data' => $accessToken], 401);
+        }
+
+        Log::info('VALIDATE TOKEN: SUCCESS', ["uid" => $uuid, "response" => 'Access token is valid']);
+        return response()->json(['success' => true, 'message' => 'Access token is valid', 'data' => []], 200);
     }
 }

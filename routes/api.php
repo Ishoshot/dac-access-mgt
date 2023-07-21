@@ -24,4 +24,5 @@ Route::middleware(['validateAppCredentials'])->prefix('token')->controller(Acces
     Route::post('create', 'store')->name('token.store');
     Route::post('revoke', 'revokeAccessToken')->name('token.revoke');
     Route::post('extend', 'extendAccessToken')->name('token.extend');
+    Route::post('validate', 'validateAccessToken')->name('token.validate');
 });
