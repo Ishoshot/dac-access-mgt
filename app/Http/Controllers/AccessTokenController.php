@@ -187,6 +187,6 @@ class AccessTokenController extends Controller
         }
 
         Log::info('VALIDATE TOKEN: SUCCESS', ["uid" => $uuid, "response" => 'Access token is valid']);
-        return response()->json(['success' => true, 'message' => 'Access token is valid', 'data' => []], 200);
+        return response()->json(['success' => true, 'message' => 'Access token is valid', 'data' => $accessToken], 200);
     }
 }
